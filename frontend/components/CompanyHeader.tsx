@@ -1,6 +1,7 @@
 import CompanyLogo from "./CompanyLogo";
 import PriceChange from "./PriceChange";
 import WatchButton from "./WatchButton";
+import { darken } from "@/lib/color";
 import type { Company, Quote } from "@/lib/types";
 
 type CompanyHeaderProps = {
@@ -13,7 +14,7 @@ export default function CompanyHeader({ company, quote }: CompanyHeaderProps) {
     <div>
       <div
         className="h-40 w-full sm:h-48"
-        style={{ backgroundColor: company.brandColor }}
+        style={{ backgroundColor: darken(company.brandColor, 0.18) }}
       />
 
       <div className="mx-auto w-full max-w-5xl px-6">

@@ -17,7 +17,7 @@ export const companies: Company[] = [
   {
     slug: "nvda",
     ticker: "NVDA",
-    name: "Nvidia",
+    name: "NVIDIA",
     isPublic: true,
     brandColor: "#76B900",
     industry: "Semiconductors",
@@ -25,7 +25,7 @@ export const companies: Company[] = [
     founded: "1993",
     employees: "~36,000",
     about:
-      "Nvidia designs graphics processing units and AI accelerator chips that power gaming, data centers, and machine learning workloads across the industry.",
+      "NVIDIA designs graphics processing units and AI accelerator chips that power gaming, data centers, and machine learning workloads across the industry.",
   },
   {
     slug: "msft",
