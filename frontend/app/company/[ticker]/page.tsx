@@ -21,15 +21,13 @@ export default async function CompanyPage({
   let candles: Candle[] = [];
 
   if (company.isPublic && company.ticker) {
-    try {
-      [quote, candles] = await Promise.all([
-        getQuote(company.ticker),
-        getCandles(company.ticker, 90),
-      ]);
-    } catch {
-      quote = null;
-      candles = [];
-    }
+    const [quoteResult, candlesResult] = await Promise.allSettled([
+      getQuote(company.ticker),
+      getCandles(company.ticker, 90),
+    ]);
+
+    quote = quoteResult.status === "fulfilled" ? quoteResult.value : null;
+    candles = candlesResult.status === "fulfilled" ? candlesResult.value : [];
   }
 
   return (

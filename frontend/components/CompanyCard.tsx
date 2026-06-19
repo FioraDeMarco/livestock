@@ -28,7 +28,12 @@ export default function CompanyCard({ company }: { company: Company }) {
       className="block border border-neutral-200 p-5 transition-colors hover:border-neutral-900"
     >
       <div className="flex items-center gap-4">
-        <CompanyLogo name={company.name} brandColor={company.brandColor} size={48} />
+        <CompanyLogo
+          name={company.name}
+          ticker={company.ticker}
+          brandColor={company.brandColor}
+          size={48}
+        />
         <div>
           <p className="font-semibold text-neutral-900">{company.name}</p>
           <p className="text-sm text-neutral-500">

@@ -20,6 +20,7 @@ export default function CompanyHeader({ company, quote }: CompanyHeaderProps) {
         <div className="-mt-10 flex items-end justify-between">
           <CompanyLogo
             name={company.name}
+            ticker={company.ticker}
             brandColor={company.brandColor}
             size={88}
             className="border-4 border-white"
