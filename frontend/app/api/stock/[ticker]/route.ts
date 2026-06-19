@@ -1,22 +1,25 @@
 import { getCandles, getQuote } from "@/lib/finnhub";
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ ticker: string }> }
 ) {
   const { ticker } = await params;
 
-  try {
-    const [quote, candles] = await Promise.all([
-      getQuote(ticker),
-      getCandles(ticker, 90),
-    ]);
+  const [quoteResult, candlesResult] = await Promise.allSettled([
+    getQuote(ticker),
+    getCandles(ticker, 90),
+  ]);
 
-    return Response.json({ quote, candles });
-  } catch (error) {
+  if (quoteResult.status === "rejected") {
     return Response.json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
+      { error: quoteResult.reason?.message ?? "Unknown error" },
       { status: 502 }
     );
   }
+
+  return Response.json({
+    quote: quoteResult.value,
+    candles: candlesResult.status === "fulfilled" ? candlesResult.value : [],
+  });
 }
