@@ -1,4 +1,5 @@
-import { getCandles, getQuote } from "@/lib/finnhub";
+import { getQuote } from "@/lib/finnhub";
+import { getHistoricalCandles } from "@/lib/yahooFinance";
 
 export async function GET(
   _request: Request,
@@ -8,7 +9,7 @@ export async function GET(
 
   const [quoteResult, candlesResult] = await Promise.allSettled([
     getQuote(ticker),
-    getCandles(ticker, 90),
+    getHistoricalCandles(ticker, 90),
   ]);
 
   if (quoteResult.status === "rejected") {
