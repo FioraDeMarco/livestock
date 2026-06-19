@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import CompanyHeader from "@/components/CompanyHeader";
 import CompanyTabs from "@/components/CompanyTabs";
 import { getCompanyByParam } from "@/lib/companies";
-import { getCandles, getQuote } from "@/lib/finnhub";
+import { getQuote } from "@/lib/finnhub";
+import { getHistoricalCandles } from "@/lib/yahooFinance";
 import type { Candle, Quote } from "@/lib/types";
 
 export default async function CompanyPage({
@@ -23,7 +24,7 @@ export default async function CompanyPage({
   if (company.isPublic && company.ticker) {
     const [quoteResult, candlesResult] = await Promise.allSettled([
       getQuote(company.ticker),
-      getCandles(company.ticker, 90),
+      getHistoricalCandles(company.ticker, 90),
     ]);
 
     quote = quoteResult.status === "fulfilled" ? quoteResult.value : null;
