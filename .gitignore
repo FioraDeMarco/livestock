@@ -141,3 +141,12 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.ipynb_checkpoints/
+*.pkl
+*.pt
+data/raw/
