@@ -1,4 +1,4 @@
-import type { Candle, NewsItem, Quote } from "./types";
+import type { NewsItem, Quote } from "./types";
 
 const BASE_URL = "https://finnhub.io/api/v1";
 
@@ -32,37 +32,6 @@ export async function getQuote(ticker: string): Promise<Quote> {
     open: data.o,
     previousClose: data.pc,
   };
-}
-
-export async function getCandles(
-  ticker: string,
-  days = 90
-): Promise<Candle[]> {
-  const key = requireApiKey();
-  const to = Math.floor(Date.now() / 1000);
-  const from = to - days * 24 * 60 * 60;
-
-  const res = await fetch(
-    `${BASE_URL}/stock/candle?symbol=${encodeURIComponent(
-      ticker
-    )}&resolution=D&from=${from}&to=${to}&token=${key}`,
-    { cache: "no-store" }
-  );
-
-  if (!res.ok) {
-    throw new Error(`Finnhub candle request failed: ${res.status}`);
-  }
-
-  const data = await res.json();
-
-  if (data.s !== "ok" || !Array.isArray(data.c)) {
-    return [];
-  }
-
-  return data.t.map((timestamp: number, i: number) => ({
-    date: new Date(timestamp * 1000).toISOString().slice(0, 10),
-    close: data.c[i],
-  }));
 }
 
 export async function getCompanyNews(
