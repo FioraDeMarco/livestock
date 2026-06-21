@@ -6,13 +6,16 @@ LiveStock explores whether price history, technical indicators, and news sentime
 
 See the [LiveStock Design Doc](https://docs.google.com/document/d/1tKu3NXJGf_oY61p60CvZvaHivoP0Zm7w) for the full product design rationale.
 
-#### 🏗️ Under Construction 🏗️
+## Screenshots
 
-<img width="715" alt="Watchlist dashboard with live quotes and sparklines for all tracked companies" src="docs/watchlist-dashboard.png" />
+**Watchlist**
+<img width="700" alt="Watchlist dashboard with live quotes and sparklines for all tracked companies" src="docs/watchlist-dashboard.png" />
 
-<img width="715" alt="Nvidia company page Overview tab with live quote, brand banner, and 90-day price chart" src="docs/nvidia-overview.png" />
+**Company page — Overview**
+<img width="700" alt="Nvidia company page Overview tab with live quote, brand banner, and 90-day price chart" src="docs/nvidia-overview.png" />
 
-<img width="715" alt="Nvidia company page Company News tab with live headlines" src="docs/nvidia-news.png" />
+**Company page — Company News**
+<img width="700" alt="Nvidia company page Company News tab with live headlines" src="docs/nvidia-news.png" />
 
 ## Project structure
 
