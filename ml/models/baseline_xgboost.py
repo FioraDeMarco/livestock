@@ -37,6 +37,20 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def latest_features(ticker: str) -> pd.Series:
+    """Most recent feature row, for live inference.
+
+    Unlike `prepare_dataset`, this doesn't need a target column —
+    today's row has no label yet (that's the point of predicting it),
+    so dropping rows with a missing target would also drop the very
+    row we want to predict on.
+    """
+    df = fetch_historical(ticker)
+    df = add_technical_indicators(df)
+    df = build_features(df)
+    return df[FEATURE_COLUMNS].dropna().iloc[-1]
+
+
 def prepare_dataset(ticker: str, horizon: int) -> pd.DataFrame:
     df = fetch_historical(ticker)
     df = add_technical_indicators(df)
@@ -123,7 +137,7 @@ def explain_latest(model: xgb.XGBClassifier, X: pd.DataFrame, top_n: int = 5):
     top_features = latest.abs().sort_values(ascending=False).head(top_n)
 
     return [
-        {"feature": name, "shap_value": round(latest[name], 4)}
+        {"feature": name, "shap_value": round(float(latest[name]), 4)}
         for name in top_features.index
     ]
 

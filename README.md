@@ -32,7 +32,7 @@ livestock/
 | `ml/` data pipeline (historical OHLCV, technical indicators, targets) | Built, tested |
 | `ml/` sentiment scoring (FinBERT) | Built, tested |
 | `ml/` baseline XGBoost + SHAP model | Built, tested — see [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx) for current accuracy and findings |
-| `ml/` FastAPI service | Not started |
+| `ml/` FastAPI service (`/predict/{ticker}`) | Built, tested |
 | Frontend ↔ ML backend connection | Not started |
 
 For a detailed, ongoing log of what's been tried, what worked, and what didn't (data source limitations, modeling pitfalls, etc.), see [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx).
@@ -89,3 +89,11 @@ python -m models.baseline_xgboost     # trains the pooled baseline model, prints
 ```
 
 Re-activate the venv (`source venv/bin/activate`) in every new shell — it doesn't persist across sessions.
+
+To run the prediction API:
+
+```bash
+uvicorn api.main:app --port 8000
+```
+
+Training happens once at startup (a few seconds), then `GET /predict/{ticker}` serves predictions from the in-memory model. Supported tickers: `TSLA`, `NVDA`, `MSFT`, `META`, `AMZN`, `GOOGL`. Every response includes the model's own accuracy and the majority-class baseline alongside the prediction — the model doesn't reliably beat that baseline yet (see [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx)), and that should stay visible, not be hidden behind a confident-looking number. Interactive docs at `http://localhost:8000/docs`.
