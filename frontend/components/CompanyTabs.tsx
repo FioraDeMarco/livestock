@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import CompanyNewsTab from "./CompanyNewsTab";
 import OverviewTab from "./OverviewTab";
 import type { Candle, Company, Quote } from "@/lib/types";
 
@@ -39,7 +40,10 @@ export default function CompanyTabs({ company, quote, candles }: CompanyTabsProp
         {activeTab === "Overview" && (
           <OverviewTab company={company} quote={quote} candles={candles} />
         )}
-        {activeTab !== "Overview" && (
+        {activeTab === "Company News" && (
+          <CompanyNewsTab ticker={company.ticker} />
+        )}
+        {activeTab !== "Overview" && activeTab !== "Company News" && (
           <p className="text-sm text-neutral-400">
             {activeTab} is coming soon.
           </p>

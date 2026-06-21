@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+yfinance
+requests
+pandas
+numpy
+xgboost
+shap
+scikit-learn
+python-dotenv
+transformers
+torch

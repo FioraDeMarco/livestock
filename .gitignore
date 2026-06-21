@@ -150,3 +150,7 @@ venv/
 *.pkl
 *.pt
 data/raw/
+ml/data/cache/
+
+# Local notes, not meant for the public repo
+docs/JOURNAL.mdx
