@@ -17,6 +17,9 @@ See the [LiveStock Design Doc](https://docs.google.com/document/d/1tKu3NXJGf_oY6
 **Company page — Company News**
 <img width="700" alt="Nvidia company page Company News tab with live headlines" src="docs/nvidia-news.png" />
 
+**Company page — AI Outlook**
+<img width="700" alt="Microsoft company page AI Outlook tab showing probability, model accuracy vs. majority baseline, a not-statistically-significant badge with 95% CI, and Claude's plain-English synthesis of the SHAP features" src="docs/msft-ai-outlook.png" />
+
 ## Project structure
 
 ```
@@ -36,12 +39,12 @@ livestock/
 | Company page — Overview tab | Live data (quote, 90-day chart, key stats) |
 | Company page — Company News tab | Live data |
 | Company page — Market Signals tab | Placeholder |
-| Company page — AI Outlook tab | Placeholder |
+| Company page — AI Outlook tab | Live (probability, accuracy/significance, Claude synthesis of SHAP features) |
 | `ml/` data pipeline (historical OHLCV, technical indicators, targets) | Built, tested |
 | `ml/` sentiment scoring (FinBERT) | Built, tested |
 | `ml/` baseline XGBoost + SHAP model | Built, tested, rigorously evaluated — see [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx) for methodology and findings |
 | `ml/` FastAPI service (`/predict/{ticker}`) | Built, tested |
-| Frontend ↔ ML backend connection | In progress — `/api/outlook/[ticker]` calls FastAPI + Anthropic, not yet wired into the AI Outlook tab |
+| Frontend ↔ ML backend connection | Live — `/api/outlook/[ticker]` calls FastAPI + Anthropic end-to-end |
 
 For a detailed, ongoing log of what's been tried, what worked, and what didn't (data source limitations, modeling pitfalls, etc.), see [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx).
 
@@ -106,4 +109,4 @@ uvicorn api.main:app --port 8000
 
 Training happens once at startup (a few seconds), then `GET /predict/{ticker}` serves predictions from the in-memory model at `http://localhost:8000` (the frontend runs separately at `http://localhost:3000` — see Frontend setup above). Supported tickers: `TSLA`, `NVDA`, `MSFT`, `META`, `AMZN`, `GOOGL`. Interactive docs at `http://localhost:8000/docs`.
 
-**Current status**: Built a full evaluation harness (walk-forward validation across 5 time periods, significance testing, multiple model and feature comparisons) to rigorously test for predictive signal. No configuration tested so far — technicals alone, with sentiment, XGBoost vs. logistic regression, several feature sets — shows a statistically validated edge over a naive baseline yet. See [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx) for the full methodology and findings.
+**Current status**: Built a full evaluation harness (walk-forward validation across 5 time periods, significance testing, multiple model and feature comparisons) to rigorously test for predictive signal — and a complete end-to-end pipeline from data ingestion through the trained model to a live AI Outlook tab that synthesizes the model's SHAP features into plain English via Claude. No configuration tested so far — technicals alone, with sentiment, XGBoost vs. logistic regression, several feature sets — shows a large statistically validated edge over a naive baseline yet. See [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx) for the full methodology and findings.

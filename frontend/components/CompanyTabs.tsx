@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AIOutlookTab from "./AIOutlookTab";
 import CompanyNewsTab from "./CompanyNewsTab";
 import OverviewTab from "./OverviewTab";
 import type { Candle, Company, Quote } from "@/lib/types";
@@ -43,10 +44,9 @@ export default function CompanyTabs({ company, quote, candles }: CompanyTabsProp
         {activeTab === "Company News" && (
           <CompanyNewsTab ticker={company.ticker} />
         )}
-        {activeTab !== "Overview" && activeTab !== "Company News" && (
-          <p className="text-sm text-neutral-400">
-            {activeTab} is coming soon.
-          </p>
+        {activeTab === "AI Outlook" && <AIOutlookTab ticker={company.ticker} />}
+        {activeTab === "Market Signals" && (
+          <p className="text-sm text-neutral-400">Market Signals is coming soon.</p>
         )}
       </div>
     </div>
