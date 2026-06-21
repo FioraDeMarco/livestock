@@ -8,7 +8,11 @@ See the [LiveStock Design Doc](https://docs.google.com/document/d/1tKu3NXJGf_oY6
 
 #### 🏗️ Under Construction 🏗️
 
-<img width="715" alt="Nvidia company page with live quote, brand banner, and 90-day price chart" src="docs/nvidia-overview.png" />
+<img width="715" alt="Watchlist dashboard with live quotes and sparklines for all tracked companies" src="docs/watchlist-dashboard.png" />
+
+<img width="715" alt="Nvidia company page Overview tab with live quote, brand banner, and 90-day price chart" src="docs/nvidia-overview.png" />
+
+<img width="715" alt="Nvidia company page Company News tab with live headlines" src="docs/nvidia-news.png" />
 
 ## Project structure
 
@@ -97,3 +101,5 @@ uvicorn api.main:app --port 8000
 ```
 
 Training happens once at startup (a few seconds), then `GET /predict/{ticker}` serves predictions from the in-memory model. Supported tickers: `TSLA`, `NVDA`, `MSFT`, `META`, `AMZN`, `GOOGL`. Every response includes the model's own accuracy and the majority-class baseline alongside the prediction — the model doesn't reliably beat that baseline yet (see [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx)), and that should stay visible, not be hidden behind a confident-looking number. Interactive docs at `http://localhost:8000/docs`.
+
+The model currently shows at most a ~0.6 percentage point edge over the majority-class baseline (55.0% vs. 54.4%, 30-day horizon) — not a reliable signal yet. On a 7-day horizon it underperforms the baseline. See [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx) for the full methodology and findings.
