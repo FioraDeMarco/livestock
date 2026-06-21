@@ -6,9 +6,9 @@ LiveStock explores whether price history, technical indicators, and news sentime
 
 See the [LiveStock Design Doc](https://docs.google.com/document/d/1tKu3NXJGf_oY61p60CvZvaHivoP0Zm7w) for the full product design rationale.
 
-## Screenshots
 
 **Watchlist**
+
 <img width="700" alt="Watchlist dashboard with live quotes and sparklines for all tracked companies" src="docs/watchlist-dashboard.png" />
 
 **Company page — Overview**
@@ -32,15 +32,16 @@ livestock/
 | Area | Status |
 | --- | --- |
 | Homepage (company card grid) | Live data |
+| Watchlist dashboard (`/dashboard`) | Live data (quotes, sparklines) |
 | Company page — Overview tab | Live data (quote, 90-day chart, key stats) |
 | Company page — Company News tab | Live data |
 | Company page — Market Signals tab | Placeholder |
 | Company page — AI Outlook tab | Placeholder |
 | `ml/` data pipeline (historical OHLCV, technical indicators, targets) | Built, tested |
 | `ml/` sentiment scoring (FinBERT) | Built, tested |
-| `ml/` baseline XGBoost + SHAP model | Built, tested — see [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx) for current accuracy and findings |
+| `ml/` baseline XGBoost + SHAP model | Built, tested, rigorously evaluated — see [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx) for methodology and findings |
 | `ml/` FastAPI service (`/predict/{ticker}`) | Built, tested |
-| Frontend ↔ ML backend connection | Not started |
+| Frontend ↔ ML backend connection | In progress — `/api/outlook/[ticker]` calls FastAPI + Anthropic, not yet wired into the AI Outlook tab |
 
 For a detailed, ongoing log of what's been tried, what worked, and what didn't (data source limitations, modeling pitfalls, etc.), see [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx).
 
@@ -69,7 +70,7 @@ For a detailed, ongoing log of what's been tried, what worked, and what didn't (
    ```bash
    npm run dev
    ```
-4. Open [http://localhost:3000](http://localhost:3000).
+4. Open [http://localhost:3000](http://localhost:3000) — **web app** 
 
 Without a `FINNHUB_API_KEY`, the homepage and company pages still render, but live price data will show as unavailable. The 90-day price chart uses `yahoo-finance2` and works without any API key.
 
@@ -97,12 +98,12 @@ python -m models.baseline_xgboost     # trains the pooled baseline model, prints
 
 Re-activate the venv (`source venv/bin/activate`) in every new shell — it doesn't persist across sessions.
 
-To run the prediction API:
+To run the prediction API — **separate service from the frontend web app**, running on its own port:
 
 ```bash
 uvicorn api.main:app --port 8000
 ```
 
-Training happens once at startup (a few seconds), then `GET /predict/{ticker}` serves predictions from the in-memory model. Supported tickers: `TSLA`, `NVDA`, `MSFT`, `META`, `AMZN`, `GOOGL`. Every response includes the model's own accuracy and the majority-class baseline alongside the prediction — the model doesn't reliably beat that baseline yet (see [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx)), and that should stay visible, not be hidden behind a confident-looking number. Interactive docs at `http://localhost:8000/docs`.
+Training happens once at startup (a few seconds), then `GET /predict/{ticker}` serves predictions from the in-memory model at `http://localhost:8000` (the frontend runs separately at `http://localhost:3000` — see Frontend setup above). Supported tickers: `TSLA`, `NVDA`, `MSFT`, `META`, `AMZN`, `GOOGL`. Interactive docs at `http://localhost:8000/docs`.
 
-The model currently shows at most a ~0.6 percentage point edge over the majority-class baseline (55.0% vs. 54.4%, 30-day horizon) — not a reliable signal yet. On a 7-day horizon it underperforms the baseline. See [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx) for the full methodology and findings.
+**Current status**: Built a full evaluation harness (walk-forward validation across 5 time periods, significance testing, multiple model and feature comparisons) to rigorously test for predictive signal. No configuration tested so far — technicals alone, with sentiment, XGBoost vs. logistic regression, several feature sets — shows a statistically validated edge over a naive baseline yet. See [`docs/JOURNAL.mdx`](docs/JOURNAL.mdx) for the full methodology and findings.

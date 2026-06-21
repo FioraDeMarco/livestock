@@ -31,7 +31,8 @@ def macd(
 
 
 def add_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
-    """Add RSI, MACD, and moving average columns to an OHLCV DataFrame."""
+    """Add RSI, MACD, moving average, volatility, and volume columns to
+    an OHLCV DataFrame."""
     out = df.copy()
 
     out["rsi_14"] = rsi(out["close"])
@@ -42,6 +43,22 @@ def add_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
     out["sma_20"] = out["close"].rolling(window=20).mean()
     out["sma_50"] = out["close"].rolling(window=50).mean()
     out["sma_200"] = out["close"].rolling(window=200).mean()
+
+    # Realized volatility and true-range-style features. A 1% move means
+    # something different in a calm regime vs. a turbulent one, and the
+    # model previously had no way to distinguish those.
+    out["realized_vol_20"] = out["close"].pct_change().rolling(window=20).std()
+    out["atr_pct_14"] = (
+        ((out["high"] - out["low"]) / out["close"]).rolling(window=14).mean()
+    )
+
+    # Volume relative to its own recent average, instead of raw
+    # day-over-day percent change -- day-over-day volume_change is noisy
+    # and mean-reverting; "is volume unusual right now" is the more
+    # stable signal (often associated with information events).
+    out["relative_volume_20"] = (
+        out["volume"] / out["volume"].rolling(window=20).mean() - 1
+    )
 
     return out
 
