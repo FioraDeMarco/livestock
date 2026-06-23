@@ -1,12 +1,38 @@
 import pandas as pd
 
 COMPANY_ALIASES = {
-    "TSLA": ["tesla"],
-    "NVDA": ["nvidia"],
+    "AAPL": ["apple"],
     "MSFT": ["microsoft"],
-    "META": ["meta", "facebook"],
-    "AMZN": ["amazon"],
     "GOOGL": ["google", "alphabet"],
+    "META": ["meta", "facebook", "instagram", "whatsapp"],
+    "AMZN": ["amazon", "aws"],
+    "NVDA": ["nvidia"],
+    "TSLA": ["tesla"],
+    "AMD": ["amd", "advanced micro devices"],
+    "JPM": ["jpmorgan", "jp morgan", "chase"],
+    "GS": ["goldman sachs", "goldman"],
+    "JNJ": ["johnson & johnson", "johnson and johnson", r"j\&j"],
+    "UNH": ["unitedhealth", "united health", "optum"],
+    "XOM": ["exxonmobil", "exxon"],
+    "CVX": ["chevron"],
+    "WMT": ["walmart"],
+    "COST": ["costco"],
+    "HD": ["home depot"],
+    "CAT": ["caterpillar"],
+}
+
+# Each ticker's GICS sector ETF — fetched alongside company news so the
+# model sees industry-wide moves (e.g. "chip sector selloff") not just
+# headlines that name the company directly.
+SECTOR_ETF = {
+    "AAPL": "XLK", "MSFT": "XLK", "NVDA": "XLK", "AMD": "XLK",
+    "GOOGL": "XLC", "META": "XLC",
+    "AMZN": "XLY", "TSLA": "XLY", "HD": "XLY",
+    "JPM": "XLF", "GS": "XLF",
+    "JNJ": "XLV", "UNH": "XLV",
+    "XOM": "XLE", "CVX": "XLE",
+    "WMT": "XLP", "COST": "XLP",
+    "CAT": "XLI",
 }
 
 # Headlines that don't directly mention the company (sector/macro news)

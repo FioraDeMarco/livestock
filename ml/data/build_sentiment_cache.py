@@ -1,7 +1,7 @@
 import time
 from pathlib import Path
 
-from data.fetch_news import fetch_company_news
+from data.fetch_news import fetch_ticker_news
 from features.sentiment import daily_sentiment
 from models.baseline_xgboost import PUBLIC_TICKERS
 
@@ -15,7 +15,7 @@ def build_cache(tickers: list[str] = PUBLIC_TICKERS, days_back: int = 365):
         out_path = CACHE_DIR / f"{ticker}_sentiment.csv"
         start = time.time()
 
-        news = fetch_company_news(ticker, days_back=days_back)
+        news = fetch_ticker_news(ticker, days_back=days_back)
         daily = daily_sentiment(news)
         daily.to_csv(out_path)
 

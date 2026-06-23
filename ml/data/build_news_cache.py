@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from data.fetch_news import fetch_company_news
+from data.fetch_news import fetch_ticker_news
 from models.baseline_xgboost import PUBLIC_TICKERS
 
 CACHE_DIR = Path(__file__).parent / "cache"
@@ -16,7 +16,7 @@ def build_raw_news_cache(tickers: list[str] = PUBLIC_TICKERS, days_back: int = 3
 
     for ticker in tickers:
         out_path = CACHE_DIR / f"{ticker}_news_raw.csv"
-        news = fetch_company_news(ticker, days_back=days_back)
+        news = fetch_ticker_news(ticker, days_back=days_back)
         news.to_csv(out_path, index=False)
         print(f"{ticker}: {len(news)} headlines -> {out_path}")
 

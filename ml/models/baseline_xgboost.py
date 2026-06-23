@@ -9,7 +9,22 @@ from features.targets import add_targets
 from features.technical_indicators import add_technical_indicators
 from models.significance import evaluate_with_significance, format_significance
 
-PUBLIC_TICKERS = ["TSLA", "NVDA", "MSFT", "META", "AMZN", "GOOGL"]
+PUBLIC_TICKERS = [
+    # Tech / semiconductors
+    "AAPL", "MSFT", "GOOGL", "META", "AMZN", "NVDA", "TSLA", "AMD",
+    # Financials
+    "JPM", "GS",
+    # Healthcare
+    "JNJ", "UNH",
+    # Energy
+    "XOM", "CVX",
+    # Consumer staples
+    "WMT", "COST",
+    # Consumer discretionary
+    "HD",
+    # Industrials
+    "CAT",
+]
 BENCHMARK_TICKER = "SPY"
 
 FEATURE_COLUMNS = [
@@ -239,7 +254,7 @@ def explain_latest(model: xgb.XGBClassifier, X: pd.DataFrame, top_n: int = 5):
 
 
 if __name__ == "__main__":
-    horizon = 30
+    horizon = 7
     model, accuracy, majority_baseline, X_test, cutoff_date, y_test, ticker_test = (
         train_pooled_model(horizon=horizon)
     )

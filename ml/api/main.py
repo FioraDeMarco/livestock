@@ -11,7 +11,7 @@ from models.baseline_xgboost import (
 )
 from models.significance import evaluate_with_significance
 
-HORIZON_DAYS = 30
+HORIZON_DAYS = 7
 state: dict = {}
 
 

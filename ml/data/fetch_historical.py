@@ -2,7 +2,7 @@ import pandas as pd
 import yfinance as yf
 
 
-def fetch_historical(ticker: str, period: str = "5y") -> pd.DataFrame:
+def fetch_historical(ticker: str, period: str = "10y") -> pd.DataFrame:
     """Fetch daily OHLCV history for a ticker.
 
     Returns a DataFrame indexed by date with columns:

@@ -66,7 +66,33 @@ def fetch_company_news(ticker: str, days_back: int = 365) -> pd.DataFrame:
     return news[["date", "headline"]].drop_duplicates()
 
 
+def fetch_ticker_news(ticker: str, days_back: int = 365) -> pd.DataFrame:
+    """Company news + sector ETF news for a ticker, merged and deduplicated.
+
+    Fetching only company-tagged headlines misses industry-wide moves
+    (e.g. "chip sector selloff hits semis") that don't name the company
+    directly. The sector ETF's news feed captures those. Headlines are
+    tagged with a `source` column ("company" or "sector") so downstream
+    relevance weighting can treat them differently.
+    """
+    from features.relevance import SECTOR_ETF
+
+    company_news = fetch_company_news(ticker, days_back=days_back)
+    company_news["source"] = "company"
+
+    sector_etf = SECTOR_ETF.get(ticker)
+    if sector_etf:
+        sector_news = fetch_company_news(sector_etf, days_back=days_back)
+        sector_news["source"] = "sector"
+        combined = pd.concat([company_news, sector_news])
+    else:
+        combined = company_news
+
+    return combined.drop_duplicates(subset=["date", "headline"]).reset_index(drop=True)
+
+
 if __name__ == "__main__":
-    news = fetch_company_news("NVDA", days_back=30)
-    print(f"{len(news)} headlines in the last 30 days")
-    print(news.head())
+    news = fetch_ticker_news("NVDA", days_back=30)
+    print(f"{len(news)} headlines in the last 30 days (company + sector)")
+    print(news.groupby("source").size())
+    print(news.head(10))
