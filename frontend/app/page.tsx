@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import CompanyCard from "@/components/CompanyCard";
+import CompanyCard from "@/components/ui/CompanyCard";
 import { companies } from "@/lib/companies";
 
 export default function Home() {

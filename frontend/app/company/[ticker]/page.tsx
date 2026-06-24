@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import CompanyHeader from "@/components/CompanyHeader";
-import CompanyTabs from "@/components/CompanyTabs";
+import CompanyHeader from "@/components/company/CompanyHeader";
+import CompanyTabs from "@/components/company/CompanyTabs";
 import { getCompanyByParam } from "@/lib/companies";
 import { getQuote } from "@/lib/finnhub";
 import { getHistoricalCandles } from "@/lib/yahooFinance";

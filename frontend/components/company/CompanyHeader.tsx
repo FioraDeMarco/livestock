@@ -1,6 +1,6 @@
-import CompanyLogo from "./CompanyLogo";
-import PriceChange from "./PriceChange";
-import WatchButton from "./WatchButton";
+import CompanyLogo from "../ui/CompanyLogo";
+import PriceChange from "../ui/PriceChange";
+import WatchButton from "../ui/WatchButton";
 import { darken } from "@/lib/color";
 import type { Company, Quote } from "@/lib/types";
 

@@ -1,6 +1,6 @@
 import FundingHistory from "./FundingHistory";
 import PriceChart from "./PriceChart";
-import StatCard from "./StatCard";
+import StatCard from "../ui/StatCard";
 import { fundingRounds } from "@/lib/companies";
 import type { Candle, Company, Quote } from "@/lib/types";
 

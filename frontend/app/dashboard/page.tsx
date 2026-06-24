@@ -1,5 +1,5 @@
 import Link from "next/link";
-import WatchlistCard from "@/components/WatchlistCard";
+import WatchlistCard from "@/components/ui/WatchlistCard";
 import { companies } from "@/lib/companies";
 
 export default function DashboardPage() {
