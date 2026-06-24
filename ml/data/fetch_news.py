@@ -40,18 +40,20 @@ def fetch_company_news(ticker: str, days_back: int = 365) -> pd.DataFrame:
     chunk_start = start
     while chunk_start < end:
         chunk_end = min(chunk_start + timedelta(days=7), end)
-        res = requests.get(
-            f"{BASE_URL}/company-news",
-            params={
-                "symbol": ticker,
-                "from": chunk_start.isoformat(),
-                "to": chunk_end.isoformat(),
-            },
-            headers=headers,
-        )
-        if res.status_code == 429:
-            time.sleep(5)
-            res = requests.get(res.url, headers=headers)
+        for attempt in range(4):
+            res = requests.get(
+                f"{BASE_URL}/company-news",
+                params={
+                    "symbol": ticker,
+                    "from": chunk_start.isoformat(),
+                    "to": chunk_end.isoformat(),
+                },
+                headers=headers,
+            )
+            if res.status_code != 429:
+                break
+            wait = 15 * (attempt + 1)
+            time.sleep(wait)
         res.raise_for_status()
         rows.extend(res.json())
         chunk_start = chunk_end
@@ -82,6 +84,7 @@ def fetch_ticker_news(ticker: str, days_back: int = 365) -> pd.DataFrame:
 
     sector_etf = SECTOR_ETF.get(ticker)
     if sector_etf:
+        time.sleep(REQUEST_DELAY_SECONDS)
         sector_news = fetch_company_news(sector_etf, days_back=days_back)
         sector_news["source"] = "sector"
         combined = pd.concat([company_news, sector_news])

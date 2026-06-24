@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import shap
@@ -8,6 +10,8 @@ from data.fetch_historical import fetch_historical
 from features.targets import add_targets
 from features.technical_indicators import add_technical_indicators
 from models.significance import evaluate_with_significance, format_significance
+
+SENTIMENT_CACHE_DIR = Path(__file__).parent.parent / "data" / "cache"
 
 PUBLIC_TICKERS = [
     # Tech / semiconductors
@@ -27,7 +31,8 @@ PUBLIC_TICKERS = [
 ]
 BENCHMARK_TICKER = "SPY"
 
-FEATURE_COLUMNS = [
+# Base features: absolute-level signals for this ticker in isolation.
+FEATURE_COLUMNS_BASE = [
     "rsi_14",
     "macd",
     "macd_signal",
@@ -41,7 +46,38 @@ FEATURE_COLUMNS = [
     "relative_volume_20",
     "excess_return",
     "relative_sma20",
+    "avg_sentiment",
 ]
+
+# Cross-sectional rank features: percentile rank of each signal within the 18-stock
+# universe on the same date. "RSI rank 0.9" = higher RSI than 90% of peers today.
+# Absolute levels answer "is this stock overbought?"; ranks answer "is it overbought
+# *relative to peers*?" — a different, market-neutral signal that the absolute value
+# can't express on its own.
+CROSS_SECTIONAL_RANK_FEATURES = [
+    "rsi_14",
+    "daily_return",
+    "excess_return",
+    "realized_vol_20",
+    "close_to_sma20",
+    "relative_volume_20",
+]
+
+FEATURE_COLUMNS = FEATURE_COLUMNS_BASE + [
+    f"{f}_xrank" for f in CROSS_SECTIONAL_RANK_FEATURES
+]
+
+
+def _load_sentiment(ticker: str) -> pd.Series:
+    """Load pre-built daily avg_sentiment for a ticker from cache.
+    Returns a Series indexed by date, or an empty Series if uncached.
+    NaN-filled rows (days with no news) are treated as 0 (neutral).
+    """
+    path = SENTIMENT_CACHE_DIR / f"{ticker}_sentiment.csv"
+    if not path.exists():
+        return pd.Series(dtype=float, name="avg_sentiment")
+    df = pd.read_csv(path, index_col=0, parse_dates=True)
+    return df["avg_sentiment"]
 
 
 def fetch_benchmark(symbol: str = BENCHMARK_TICKER) -> pd.DataFrame:
@@ -80,20 +116,50 @@ def build_features(df: pd.DataFrame, benchmark: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def latest_features(ticker: str, benchmark: pd.DataFrame | None = None) -> pd.Series:
-    """Most recent feature row, for live inference.
+def latest_features_cross_sectional(
+    tickers: list[str] = PUBLIC_TICKERS,
+    benchmark: pd.DataFrame | None = None,
+) -> dict[str, pd.Series]:
+    """Latest feature row for all tickers, with cross-sectional ranks computed.
 
-    Unlike `prepare_dataset`, this doesn't need a target column —
-    today's row has no label yet (that's the point of predicting it),
-    so dropping rows with a missing target would also drop the very
-    row we want to predict on.
+    Cross-sectional rank features require the full peer universe on the same date —
+    you can't compute "this stock's RSI rank among 18 peers" from one ticker's data
+    alone. This fetches all tickers, stacks the most recent row from each, computes
+    ranks across the peer universe, and returns a dict so callers can look up any
+    individual ticker without repeating the fetch.
     """
     if benchmark is None:
         benchmark = fetch_benchmark()
-    df = fetch_historical(ticker)
-    df = add_technical_indicators(df)
-    df = build_features(df, benchmark)
-    return df[FEATURE_COLUMNS].dropna().iloc[-1]
+
+    rows: dict[str, pd.Series] = {}
+    for ticker in tickers:
+        df = fetch_historical(ticker)
+        df = add_technical_indicators(df)
+        df = build_features(df, benchmark)
+        sentiment = _load_sentiment(ticker)
+        if not sentiment.empty:
+            df = df.join(sentiment, how="left")
+        df["avg_sentiment"] = (
+            df.get("avg_sentiment", pd.Series(0.0, index=df.index)).fillna(0.0)
+        )
+        rows[ticker] = df[FEATURE_COLUMNS_BASE].dropna().iloc[-1]
+
+    # Stack into one row per ticker, then rank across the peer cross-section.
+    cross = pd.DataFrame(rows).T
+    for feat in CROSS_SECTIONAL_RANK_FEATURES:
+        cross[f"{feat}_xrank"] = cross[feat].rank(pct=True)
+
+    return {ticker: cross.loc[ticker, FEATURE_COLUMNS] for ticker in tickers}
+
+
+def latest_features(ticker: str, benchmark: pd.DataFrame | None = None) -> pd.Series:
+    """Most recent feature row for a single ticker, with cross-sectional ranks.
+
+    Thin wrapper around latest_features_cross_sectional. For repeated calls
+    (e.g. serving many tickers from one request), call the cross-sectional
+    version directly and look up each ticker from the returned dict.
+    """
+    return latest_features_cross_sectional([ticker] + PUBLIC_TICKERS, benchmark)[ticker]
 
 
 def prepare_dataset(
@@ -106,9 +172,30 @@ def prepare_dataset(
     df = add_targets(df, horizons=[horizon])
     df = build_features(df, benchmark)
 
+    sentiment = _load_sentiment(ticker)
+    if not sentiment.empty:
+        df = df.join(sentiment, how="left")
+    df["avg_sentiment"] = df.get("avg_sentiment", pd.Series(0.0, index=df.index)).fillna(0.0)
+
     target_col = f"target_{horizon}d"
-    columns = FEATURE_COLUMNS + [target_col]
+    # Only select base features here — cross-sectional rank columns (_xrank) are
+    # computed in prepare_pooled_dataset after all tickers are stacked together.
+    columns = FEATURE_COLUMNS_BASE + [target_col]
     return df[columns].dropna()
+
+
+def _add_cross_sectional_ranks(pooled: pd.DataFrame) -> pd.DataFrame:
+    """Append cross-sectional rank columns to a pooled multi-ticker DataFrame.
+
+    For each date, ranks each ticker's feature value as a percentile (0–1)
+    within the peer universe. Requires the DataFrame to be indexed by date
+    with a 'ticker' column so groupby(date) gives the right cross-section.
+    """
+    rank_cols = {
+        f"{feat}_xrank": pooled.groupby(level=0)[feat].rank(pct=True)
+        for feat in CROSS_SECTIONAL_RANK_FEATURES
+    }
+    return pooled.assign(**rank_cols)
 
 
 def prepare_pooled_dataset(
@@ -137,7 +224,10 @@ def prepare_pooled_dataset(
     pooled = pd.concat(frames).sort_index()
     if since is not None:
         pooled = pooled[pooled.index >= since]
-    return pooled
+
+    # Compute cross-sectional ranks after all tickers are pooled together,
+    # since ranking requires the full peer universe on each date.
+    return _add_cross_sectional_ranks(pooled)
 
 
 def train_pooled_model(

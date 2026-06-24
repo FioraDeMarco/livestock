@@ -9,6 +9,8 @@ type Outlook = {
   majorityBaseline?: number;
   accuracyCi95?: [number, number];
   isSignificant?: boolean;
+  mcnemarP?: number;
+  horizonDays?: number;
   topFeatures?: { feature: string; shap_value: number }[];
   summary: string;
 };
@@ -19,6 +21,13 @@ async function fetchOutlook(ticker: string): Promise<Outlook> {
     throw new Error("Failed to load AI outlook");
   }
   return res.json();
+}
+
+function featureLabel(name: string): string {
+  return name
+    .replace(/_/g, " ")
+    .replace(/\b(sma|rsi|macd|atr)\b/gi, (m) => m.toUpperCase())
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export default function AIOutlookTab({ ticker }: { ticker: string | null }) {
@@ -48,6 +57,12 @@ export default function AIOutlookTab({ ticker }: { ticker: string | null }) {
 
   return (
     <div className="max-w-2xl space-y-6">
+      {hasModel && data.horizonDays && (
+        <p className="text-xs uppercase tracking-wide text-neutral-400">
+          {data.horizonDays}-day forecast
+        </p>
+      )}
+
       {hasModel && (
         <div className="grid grid-cols-3 gap-4">
           <div className="border border-neutral-200 p-4">
@@ -78,7 +93,7 @@ export default function AIOutlookTab({ ticker }: { ticker: string | null }) {
       )}
 
       {hasModel && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <span
             className={`border px-2 py-0.5 text-xs font-medium uppercase tracking-wide ${
               data.isSignificant
@@ -88,12 +103,47 @@ export default function AIOutlookTab({ ticker }: { ticker: string | null }) {
           >
             {data.isSignificant ? "Statistically significant" : "Not statistically significant"}
           </span>
+          {data.mcnemarP !== undefined && (
+            <span className="text-xs text-neutral-500">
+              p = {data.mcnemarP.toFixed(3)}
+            </span>
+          )}
           {data.accuracyCi95 && (
             <span className="text-xs text-neutral-500">
               95% CI: {(data.accuracyCi95[0] * 100).toFixed(1)}%–
               {(data.accuracyCi95[1] * 100).toFixed(1)}%
             </span>
           )}
+        </div>
+      )}
+
+      {data.topFeatures && data.topFeatures.length > 0 && (
+        <div>
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+            Top Signals
+          </h2>
+          <div className="space-y-1">
+            {data.topFeatures.map((f) => (
+              <div key={f.feature} className="flex items-center gap-3">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                    f.shap_value > 0 ? "bg-green-500" : "bg-red-400"
+                  }`}
+                />
+                <span className="text-sm text-neutral-700 flex-1">
+                  {featureLabel(f.feature)}
+                </span>
+                <span
+                  className={`text-xs font-mono ${
+                    f.shap_value > 0 ? "text-green-600" : "text-red-500"
+                  }`}
+                >
+                  {f.shap_value > 0 ? "+" : ""}
+                  {f.shap_value.toFixed(3)}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
